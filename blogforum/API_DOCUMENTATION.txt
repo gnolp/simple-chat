@@ -1,0 +1,343 @@
+API Documentation for BlogForum
+================================
+
+---
+
+Authentication & User APIs
+-------------------------
+
+POST /login
+  Input:
+    {
+      "email": "string",
+      "password": "string"
+    }
+  Output (Success):
+    {
+      "userId": 1,
+      "accessToken": "jwt-token-string",
+      "refeshToken": "jwt-refresh-token-string"
+    }
+  Output (Failure):
+    {
+      "success": false,
+      "message": "Email không đúng!" // or "Mật khẩu không đúng!"
+    }
+
+POST /register
+  Input:
+    {
+      "email": "string",
+      "password": "string"
+    }
+  Output (Success):
+    {
+      "success": true,
+      "message": "Đăng ký thành công!"
+    }
+  Output (Failure):
+    {
+      "success": false,
+      "message": "Email đã được sử dụng!" // or "Có lỗi xảy ra, vui lòng thử lại!"
+    }
+
+POST /refresh-token
+  Input:
+    {
+      "refeshToken": "string"
+    }
+  Output (Success):
+    {
+      "accessToken": "new-jwt-access-token"
+    }
+  Output (Failure):
+    {
+      "success": false,
+      "message": "Invalid or expired refresh token"
+    }
+  Paradigm:
+    - The client sends the refresh token (usually obtained from /login) to /refresh-token.
+    - The server validates the refresh token and, if valid, issues a new access token.
+
+PUT /update-profile/{id}
+  Input:
+    Path variable: id (user ID)
+    Body:
+      {
+        "id": 1,
+        "name": "string",
+        "email": "string",
+        "role": "string",
+        "image": "string",
+        "dob": "dd-MM-yyyy"
+      }
+  Output:
+    {
+      "success": true/false,
+      "message": "..."
+    }
+
+GET /me
+  Output: Spring Security authentication object for the current user
+
+---
+
+Friend APIs
+-----------
+
+POST /friend/send-request
+  Input: fromUserId (long), toUserId (long) as query params
+  Output:
+    {
+      "success": true/false,
+      "message": "..."
+    }
+
+GET /friend/friend-requests/{userId}
+  Output:
+    [
+      {
+        "requestId": 123,
+        "senderId": 1,
+        "senderName": "Alice"
+      }
+    ]
+
+PUT /friend/accept-request/{requestId}
+  Output (Success):
+    {
+      "success": true,
+      "message": "Lời mời kết bạn đã được chấp nhận!"
+    }
+  Output (Failure):
+    {
+      "success": false,
+      "message": "Lời mời đã bị xóa hoặc có lỗi xảy ra!"
+    }
+
+GET /friend/get-list-friend/{userId}
+  Output:
+    [
+      {
+        "id": 1,
+        "name": "Alice",
+        "email": "alice@example.com",
+        "role": "User",
+        "image": "url",
+        "dob": "01-01-2000"
+      }
+    ]
+
+---
+
+Chat APIs
+---------
+
+WebSocket /chat/{chatId}
+  Paradigm:
+    - Connect to WebSocket endpoint (e.g., ws://<host>/ws)
+    - Subscribe to /chat/{chatId}
+    - Send message as JSON:
+      {
+        "Content": "Hello!",
+        "type": "TEXT"
+      }
+    - Receive message as JSON:
+      {
+        "Content": "Hello!",
+        "sendAt": "2024-05-01T12:00:00.000Z",
+        "sender": {
+          "id": 1,
+          "name": "Alice",
+          "email": "alice@example.com",
+          "role": "User",
+          "image": "url",
+          "dob": "01-01-2000"
+        },
+        "type": "TEXT"
+      }
+    - On error:
+      {
+        "success": false,
+        "message": "Vui long nhap noi dung tin nhan"
+      }
+
+GET /get-list-chat?page=0
+  Output:
+    [
+      {
+        "id": 1,
+        "name": "Group Chat",
+        "image": "url",
+        "users": [UserDTO...],
+        "messages": [MessageDTO...],
+        "status": "ACTIVE",
+        "unreadCount": 2
+      }
+    ]
+
+GET /get/chatnoDTO
+  Output:
+    [
+      {
+        "id": 1,
+        "image": "string",
+        "name": "string",
+        "userchat": [UserChat...],
+        "messages": [Message...],
+        "created_at": "2024-05-01",
+        "type": "GROUP",
+        "imgs": [ImageChat...]
+      }
+    ]
+
+GET /get-message-of-chat/{chatId}?page=0
+  Output:
+    [
+      {
+        "Content": "Hello!",
+        "sendAt": "2024-05-01T12:00:00.000Z",
+        "sender": UserDTO,
+        "type": "TEXT"
+      }
+    ]
+
+PUT /create-group-chat
+  Input: [1, 2, 3] (array of user IDs)
+  Output:
+    {
+      "success": true/false,
+      "message": "..."
+    }
+
+PUT /change-image-of-group/{chatId}
+  Input: Multipart file 'file'
+  Output (Success):
+    {
+      "success": true,
+      "message": "Done!"
+    }
+  Output (Failure):
+    "Upload failed"
+
+DELETE /delete-user-of-chat/{chatId}?userId=2
+  Output:
+    {
+      "success": true,
+      "message": "done"
+    }
+
+PUT /add-user-into-chat/{chatId}?userId=2
+  Output:
+    {
+      "success": true,
+      "message": "done"
+    }
+
+PATCH /change-name-of-chat/{chatId}
+  Input:
+    {
+      "id": "userId as string",
+      "name": "new name"
+    }
+  Output:
+    {
+      "success": true,
+      "message": "done"
+    }
+
+POST /upload-file/{chatId}
+  Input: Multipart file 'file'
+  Output (Success):
+    {
+      "url": "uploaded file url"
+    }
+  Output (Failure):
+    "Upload failed"
+
+---
+
+DTO and Model Structures
+-----------------------
+
+UserDTO:
+  {
+    "id": 1,
+    "name": "string",
+    "email": "string",
+    "role": "string",
+    "image": "string",
+    "dob": "dd-MM-yyyy"
+  }
+
+ApiResponse:
+  {
+    "success": true/false,
+    "message": "string"
+  }
+
+FriendRequestDto:
+  {
+    "requestId": 123,
+    "senderId": 1,
+    "senderName": "Alice"
+  }
+
+ChatDTO:
+  {
+    "id": 1,
+    "name": "string",
+    "image": "string",
+    "users": [UserDTO...],
+    "messages": [MessageDTO...],
+    "status": "ACTIVE",
+    "unreadCount": 2
+  }
+
+MessageDTO:
+  {
+    "Content": "string",
+    "sendAt": "2024-05-01T12:00:00.000Z",
+    "sender": UserDTO,
+    "type": "TEXT"
+  }
+
+Chat:
+  {
+    "id": 1,
+    "image": "string",
+    "name": "string",
+    "userchat": [UserChat...],
+    "messages": [Message...],
+    "created_at": "2024-05-01",
+    "type": "GROUP",
+    "imgs": [ImageChat...]
+  }
+
+UserChat:
+  {
+    "id": 1,
+    "user": User,
+    "chat": Chat,
+    "name": "string",
+    "joined_at": "2024-05-01",
+    "role": "admin" // or "member"
+  }
+
+Message:
+  {
+    "id": 1,
+    "sender": User,
+    "UserMessage": [UserMessage...],
+    "chat": Chat,
+    "content": "string",
+    "sendAt": "2024-05-01T12:00:00.000Z",
+    "type": "TEXT"
+  }
+
+ImageChat:
+  {
+    "id": 1,
+    "chat": Chat,
+    "url": "string"
+  }

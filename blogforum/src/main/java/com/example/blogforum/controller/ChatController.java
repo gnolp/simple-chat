@@ -51,7 +51,7 @@ public class ChatController {
 	private final CloudinaryService cloudinaryService;
 	private final ImageChatService imgChatService;
 	@MessageMapping("/chat/{chatId}")
-	public ResponseEntity<?> sendMessage( @DestinationVariable Long chatId,
+	public ResponseEntity<?> sendMessage(@DestinationVariable Long chatId,
 			@Payload Map<String,String> message,Message<?> headers) {
 		SimpMessageHeaderAccessor accessor = SimpMessageHeaderAccessor.wrap(headers);
 	    UserPrincipal principal = (UserPrincipal) accessor.getSessionAttributes().get("userPrincipal");

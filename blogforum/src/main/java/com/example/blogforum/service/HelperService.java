@@ -30,7 +30,7 @@ public class HelperService {
 
 	    if (authentication.getPrincipal() instanceof UserPrincipal) {
 	        UserPrincipal currentUser = (UserPrincipal) authentication.getPrincipal();
-	        System.out.println("User ID: " + currentUser.getUserId());
+//	        System.out.println("User ID: " + currentUser.getUserId());
 	        return currentUser.getUserId();
 	    }
 	    

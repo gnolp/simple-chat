@@ -28,6 +28,7 @@ public class UserService {
 	private final UserRepository userRepository;
 	private final FriendRequestRepository friendRequestRepository;
 	private final ChatService chatService;
+	private final HelperService helper;
 	public List<UserDTO> getAllUsers(){
 		List<User> users = userRepository.findAll();
 		return users.stream()
@@ -113,6 +114,22 @@ public class UserService {
                 .dob(user.getDob())
                 .build())
 				.collect(Collectors.toList());
+	}
+	public UserDTO getMe() {
+		Long userId = helper.getCurrentUserId();
+		if(!userId.equals(null)) {
+			Optional<User> temp = userRepository.findById(userId);
+			if(!temp.isEmpty()) {
+				User user = temp.get();
+				return UserDTO.builder()
+				.email(user.getEmail())
+				.id(userId)
+				.image(user.getImage())
+				.name(user.getName())
+				.build();
+			}
+		}
+		return null;
 	}
 
 }
